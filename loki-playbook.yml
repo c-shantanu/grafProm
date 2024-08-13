@@ -1,0 +1,79 @@
+---
+- name: Install Loki on Ubuntu 22.04 LTS
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Install unzip utility
+      ansible.builtin.apt:
+        name: unzip
+        state: present
+        update_cache: yes
+
+    - name: Create directory to store Loki binary and configuration file
+      ansible.builtin.file:
+        path: /opt/loki
+        state: directory
+
+    - name: Download Loki binary from the official website
+      ansible.builtin.get_url:
+        url: "https://github.com/grafana/loki/releases/download/v2.8.2/loki-linux-amd64.zip"
+        dest: /opt/loki/loki.zip
+
+    - name: Extract Loki binary from archive
+      ansible.builtin.unarchive:
+        src: /opt/loki/loki.zip
+        dest: /opt/loki
+        remote_src: yes
+
+    - name: Set execute permission for Loki binary
+      ansible.builtin.file:
+        path: /opt/loki/loki-linux-amd64
+        mode: '0755'
+        state: file
+
+    - name: Create symbolic link for Loki command
+      ansible.builtin.file:
+        src: /opt/loki/loki-linux-amd64
+        dest: /usr/local/bin/loki
+        state: link
+
+    - name: Download configuration file for Loki
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/grafana/loki/main/cmd/loki/loki-local-config.yaml"
+        dest: /opt/loki/loki-local-config.yaml
+
+    - name: Verify Loki installation
+      ansible.builtin.command: loki --version
+      register: loki_version_output
+      failed_when: loki_version_output.rc != 0
+
+    - name: Create systemd unit file for Loki
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/loki.service
+        content: |
+          [Unit]
+          Description=Loki log aggregation system
+          After=network.target
+
+          [Service]
+          ExecStart=/opt/loki/loki-linux-amd64 -config.file=/opt/loki/loki-local-config.yaml
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd to read new unit file
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Start Loki service
+      ansible.builtin.systemd:
+        name: loki
+        state: started
+        enabled: yes
+
+    - name: Ensure Loki service is running
+      ansible.builtin.systemd:
+        name: loki
+        state: started

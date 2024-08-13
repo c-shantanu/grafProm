@@ -1,0 +1,111 @@
+---
+- name: Install and configure Promtail
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Check CPU architecture
+      command: uname -a
+      register: cpu_arch
+
+    - name: Download Promtail binary
+      get_url:
+        url: "https://github.com/grafana/loki/releases/download/v2.4.1/promtail-linux-amd64.zip"
+        dest: /tmp/promtail-linux-amd64.zip
+
+    - name: Extract the binary
+      unarchive:
+        src: /tmp/promtail-linux-amd64.zip
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Make Promtail executable
+      file:
+        path: /tmp/promtail-linux-amd64
+        mode: '0755'
+
+    - name: Copy binary to /usr/local/bin/
+      copy:
+        src: /tmp/promtail-linux-amd64
+        dest: /usr/local/bin/promtail
+        mode: '0755'
+        remote_src: yes  # This line allows the task to find the file on the remote machine
+
+    - name: Verify installation by checking version
+      command: promtail --version
+      register: promtail_version
+
+    - name: Create directories for Promtail configuration
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /etc/promtail
+        - /etc/promtail/logs
+
+    - name: Create Promtail configuration file
+      copy:
+        dest: /etc/promtail/promtail-config.yaml
+        content: |
+          server:
+            http_listen_port: 9080
+            grpc_listen_port: 9095
+
+          positions:
+            filename: /etc/promtail/positions.yaml
+
+          clients:
+            - url: http://localhost:3100/loki/api/v1/push
+
+          scrape_configs:
+            - job_name: system
+              static_configs:
+                - targets:
+                    - localhost
+                  labels:
+                    job: varlogs
+                    __path__: /var/log/*.log
+
+    - name: Create Promtail service file
+      copy:
+        dest: /etc/systemd/system/promtail.service
+        content: |
+          [Unit]
+          Description=Promtail service
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=root
+          ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/promtail-config.yaml
+          Restart=on-failure
+          RestartSec=20
+          StandardOutput=append:/etc/promtail/logs/promtail.log
+          StandardError=append:/etc/promtail/logs/promtail.log
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd to recognize new service
+      command: systemctl daemon-reload
+
+    - name: Start Promtail service
+      service:
+        name: promtail
+        state: started
+        enabled: true
+
+    - name: Check status of Promtail service
+      command: systemctl status promtail
+      register: promtail_status
+      ignore_errors: true  # Allow playbook to continue even if this fails
+
+    - name: Debug Promtail service status
+      debug:
+        var: promtail_status.rc
+
+    - name: Restart Promtail service if needed
+      service:
+        name: promtail
+        state: restarted
+      when: promtail_status.rc != 0

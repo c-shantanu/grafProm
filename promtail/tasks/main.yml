@@ -1,0 +1,70 @@
+---
+# tasks file for promtail
+- name: Check CPU architecture
+  command: uname -a
+  register: cpu_arch
+
+- name: Download Promtail binary
+  get_url:
+    url: "{{ promtail_download_url }}"
+    dest: /tmp/promtail-linux-amd64.zip
+
+- name: Extract the binary
+  unarchive:
+    src: /tmp/promtail-linux-amd64.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: Make Promtail executable
+  file:
+    path: /tmp/promtail-linux-amd64
+    mode: '0755'
+
+- name: Copy binary to /usr/local/bin/
+  copy:
+    src: /tmp/promtail-linux-amd64
+    dest: "{{ promtail_bin_path }}"
+    mode: '0755'
+    remote_src: yes
+
+- name: Verify installation by checking version
+  command: "{{ promtail_bin_path }} --version"
+  register: promtail_version
+
+- name: Create directories for Promtail configuration
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /etc/promtail
+    - "{{ log_dir }}"
+
+- name: Create Promtail configuration file
+  template:
+    src: promtail-config.yaml.j2
+    dest: "{{ promtail_config_path }}"
+
+- name: Create Promtail service file
+  template:
+    src: promtail.service.j2
+    dest: "{{ promtail_service_path }}"
+
+- name: Notify to reload systemd
+  meta: flush_handlers  # Ensure handlers are executed
+
+- name: Check status of Promtail service
+  command: systemctl status promtail
+  register: promtail_status
+  ignore_errors: true
+
+- name: Debug Promtail service status
+  debug:
+    var: promtail_status.rc
+
+- name: Start Promtail service if not running
+  service:
+    name: promtail
+    state: started
+    enabled: true
+  when: promtail_status.rc != 0

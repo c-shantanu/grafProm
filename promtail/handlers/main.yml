@@ -1,0 +1,15 @@
+---
+# handlers file for promtail
+- name: Reload systemd to recognize new service
+  command: systemctl daemon-reload
+
+- name: Start Promtail service
+  service:
+    name: promtail
+    state: started
+    enabled: true
+
+- name: Restart Promtail service
+  service:
+    name: promtail
+    state: restarted

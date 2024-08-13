@@ -1,0 +1,7 @@
+---
+# vars file for alertmanger
+serviceName: "alertmanager"
+userId: "alertmanager"
+groupId: "alertmanager"
+exec_command: "/usr/local/bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml --storage.path=/data/alertmanager"
+version: "0.26.0"

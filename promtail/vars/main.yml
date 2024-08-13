@@ -1,0 +1,8 @@
+---
+# vars file for promtail
+promtail_version: "v2.4.1"
+promtail_download_url: "https://github.com/grafana/loki/releases/download/{{ promtail_version }}/promtail-linux-amd64.zip"
+promtail_bin_path: "/usr/local/bin/promtail"
+promtail_config_path: "/etc/promtail/promtail-config.yaml"
+promtail_service_path: "/etc/systemd/system/promtail.service"
+log_dir: "/etc/promtail/logs"

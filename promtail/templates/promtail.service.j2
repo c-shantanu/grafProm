@@ -1,0 +1,15 @@
+[Unit]
+Description=Promtail service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart={{ promtail_bin_path }} -config.file {{ promtail_config_path }}
+Restart=on-failure
+RestartSec=20
+StandardOutput=append:{{ log_dir }}/promtail.log
+StandardError=append:{{ log_dir }}/promtail.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+---
+# vars file for node-exporter
+serviceName: "node_exp"
+user: "node_exp"
+group: "node_exp"
+exec_command: "/home/node_exp/node_exporter-1.7.0.linux-amd64"
+version: "1.7.0"
