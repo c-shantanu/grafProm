@@ -38,3 +38,7 @@
   shell : "grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
   register: __command_admin
   changed_when: __command_admin.rc !=0
+
+# tasks for grafana_Dashboard
+- name: Include tasks for Dashboard
+  ansible.builtin.include_tasks: addDashboard.yml
