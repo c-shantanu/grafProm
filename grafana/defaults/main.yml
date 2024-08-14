@@ -1,3 +1,4 @@
 ---
 # defaults file for grafana
 grafana_admin_password: "abc1234"
+grafana_admin_user: "admin"
