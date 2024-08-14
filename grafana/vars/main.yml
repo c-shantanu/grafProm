@@ -1,7 +1,2 @@
 ---
-# vars file for grafanaDashboard
-editor_name : "Shantanu"
-grafana_api_key: "api_key"
-grafana_url: url:3000
-json_file_template_src: "dashboard.json.j2"
-json_file_dest: "dashboard.json's path" 
+# vars file for grafana
