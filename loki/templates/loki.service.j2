@@ -1,12 +1,12 @@
 [Unit]
-Description=Loki Service
+Description=Loki log aggregation system
 After=network.target
 
 [Service]
-User={{ user }}
-Group={{ group }}
-ExecStart={{ install_dir }}/loki-linux-amd64 -config.file {{ config_dir }}/loki-config.yaml
-Restart=on-failure
+User: {{ user}} 
+Group: {{ group }} 
+ExecStart={{ loki_bin_path }} -config.file={{ loki_config_path }}
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
