@@ -1,8 +1,20 @@
 ---
 # tasks file for promtail
-- name: Check CPU architecture
-  command: uname -a
-  register: cpu_arch
+
+- name: Getting system architecture
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: system_architecture
+
+- name: Setting dpkg_arch for x86_64
+  ansible.builtin.set_fact:
+    dpkg_arch: "amd64"
+  when: system_architecture.stdout == "x86_64"
+
+- name: Setting dpkg_arch for other architectures
+  ansible.builtin.set_fact:
+    dpkg_arch: "{{ system_architecture.stdout }}"
+  when: system_architecture.stdout != "x86_64"
 
 - name: Download Promtail binary
   get_url:
@@ -54,6 +66,7 @@
   meta: flush_handlers  # Ensure handlers are executed
 
 - name: Check status of Promtail service
+  become: yes
   command: systemctl status promtail
   register: promtail_status
   ignore_errors: true
