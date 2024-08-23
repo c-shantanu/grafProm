@@ -19,22 +19,29 @@
 - name: Download Promtail binary
   get_url:
     url: "{{ promtail_download_url }}"
-    dest: /tmp/promtail-linux-amd64.zip
+    dest: /tmp/promtail-linux-{{ dpkg_arch }}.zip
+
+- name: Install unzip utility
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update_cache: yes
+
 
 - name: Extract the binary
   unarchive:
-    src: /tmp/promtail-linux-amd64.zip
+    src: /tmp/promtail-linux-{{ dpkg_arch }}.zip
     dest: /tmp/
     remote_src: yes
 
 - name: Make Promtail executable
   file:
-    path: /tmp/promtail-linux-amd64
+    path: /tmp/promtail-linux-{{ dpkg_arch }}
     mode: '0755'
 
 - name: Copy binary to /usr/local/bin/
   copy:
-    src: /tmp/promtail-linux-amd64
+    src: /tmp/promtail-linux-{{ dpkg_arch }}
     dest: "{{ promtail_bin_path }}"
     mode: '0755'
     remote_src: yes
