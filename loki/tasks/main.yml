@@ -26,8 +26,7 @@
 
 - name: Download Loki binary from the official website
   ansible.builtin.get_url:
-    # url: "{{ loki_download_url }}"
-    url: "https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-{{ dpkg_arch }}.zip"
+    url: "{{ loki_download_url }}{{ loki_version }}/loki-linux-{{ dpkg_arch }}.zip"
     dest: "{{ loki_install_dir }}/loki.zip"
 
 - name: Extract Loki binary from archive
