@@ -1,10 +1,12 @@
 ---
 # vars file for loki
-loki_version: "v2.8.2"
-loki_bin_url: "https://github.com/grafana/loki/releases/download/{{ loki_version }}/loki-linux-amd64.zip"
-loki_bin_path: "/opt/loki/loki-linux-amd64"
-loki_config_url: "https://raw.githubusercontent.com/grafana/loki/{{ loki_version }}/cmd/loki/loki-local-config.yaml"
-loki_config_path: "/opt/loki/loki-local-config.yaml"
-loki_service_file: "/etc/systemd/system/loki.service"
 user: "loki"
 group: "loki"
+loki_version: "2.8.2"
+dpkg_arch: "system_architecture"
+loki_install_dir: "/opt/loki"
+loki_download_url: "https://github.com/grafana/loki/releases/download/v"
+loki_symlink: "/usr/local/bin/loki"
+loki_config_path: "/opt/loki/loki-local-config.yaml"
+loki_service_file: "/etc/systemd/system/loki.service"
+loki_bin_path: "/opt/loki/loki-linux-{{dpkg_arch}}"
